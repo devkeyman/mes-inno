@@ -14,6 +14,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +34,65 @@ public class WorkLogController {
         this.workLogUseCase = workLogUseCase;
         this.workLogRepository = workLogRepository;
         this.workLogMapper = workLogMapper;
+    }
+    
+    @GetMapping
+    public ResponseEntity<List<WorkLogDto>> getAllWorkLogs(
+            @RequestParam(required = false) Long workOrderId,
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) String action,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        
+        List<WorkLog> workLogs = workLogRepository.findAll();
+        
+        // Apply filters
+        if (workOrderId != null) {
+            workLogs = workLogs.stream()
+                .filter(log -> log.getWorkOrder() != null && log.getWorkOrder().getId().equals(workOrderId))
+                .collect(Collectors.toList());
+        }
+        
+        if (userId != null) {
+            workLogs = workLogs.stream()
+                .filter(log -> log.getUser() != null && log.getUser().getId().equals(userId))
+                .collect(Collectors.toList());
+        }
+        
+        if (action != null) {
+            workLogs = workLogs.stream()
+                .filter(log -> log.getAction() != null && log.getAction().toString().equals(action))
+                .collect(Collectors.toList());
+        }
+        
+        if (startDate != null) {
+            LocalDateTime start = LocalDateTime.parse(startDate + "T00:00:00");
+            workLogs = workLogs.stream()
+                .filter(log -> log.getLoggedAt() != null && log.getLoggedAt().isAfter(start))
+                .collect(Collectors.toList());
+        }
+        
+        if (endDate != null) {
+            LocalDateTime end = LocalDateTime.parse(endDate + "T23:59:59");
+            workLogs = workLogs.stream()
+                .filter(log -> log.getLoggedAt() != null && log.getLoggedAt().isBefore(end))
+                .collect(Collectors.toList());
+        }
+        
+        List<WorkLogDto> dtos = workLogs.stream()
+            .map(workLogMapper::toDto)
+            .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(dtos);
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<WorkLogDto> getWorkLogById(@PathVariable Long id) {
+        WorkLog workLog = workLogRepository.findById(id)
+            .orElseThrow(() -> new com.mes.common.exception.ResourceNotFoundException("WorkLog", id));
+        
+        WorkLogDto dto = workLogMapper.toDto(workLog);
+        return ResponseEntity.ok(dto);
     }
     
     @PostMapping
@@ -70,27 +131,5 @@ public class WorkLogController {
         return ResponseEntity.ok(dtos);
     }
     
-    @GetMapping("/worker/{workerId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or #workerId == authentication.principal.id")
-    public ResponseEntity<List<WorkLogDto>> getWorkLogsByWorker(@PathVariable Long workerId) {
-        List<WorkLog> workLogs = workLogRepository.findByWorkerId(workerId);
-        List<WorkLogDto> dtos = workLogs.stream()
-            .map(workLogMapper::toDto)
-            .collect(Collectors.toList());
-        
-        return ResponseEntity.ok(dtos);
-    }
     
-    @GetMapping("/my-logs")
-    public ResponseEntity<List<WorkLogDto>> getMyWorkLogs(Authentication authentication) {
-        CustomUserDetailsService.CustomUserDetails userDetails = 
-            (CustomUserDetailsService.CustomUserDetails) authentication.getPrincipal();
-        
-        List<WorkLog> workLogs = workLogRepository.findByWorkerId(userDetails.getId());
-        List<WorkLogDto> dtos = workLogs.stream()
-            .map(workLogMapper::toDto)
-            .collect(Collectors.toList());
-        
-        return ResponseEntity.ok(dtos);
-    }
 }

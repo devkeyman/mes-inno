@@ -2,6 +2,7 @@ package com.mes.adapter.in.web.controller;
 
 import com.mes.adapter.in.web.security.CustomUserDetailsService;
 import com.mes.application.port.in.UserUseCase;
+import com.mes.common.dto.user.ChangePasswordDto;
 import com.mes.common.dto.user.CreateUserDto;
 import com.mes.common.dto.user.UpdateUserDto;
 import com.mes.common.dto.user.UserDto;
@@ -70,17 +71,6 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
     
-    @GetMapping("/me")
-    public ResponseEntity<UserDto> getCurrentUser(Authentication authentication) {
-        CustomUserDetailsService.CustomUserDetails userDetails = 
-            (CustomUserDetailsService.CustomUserDetails) authentication.getPrincipal();
-        
-        User user = userUseCase.findUserById(userDetails.getId())
-            .orElseThrow(() -> new ResourceNotFoundException("User", userDetails.getId()));
-        
-        UserDto userDto = convertToDto(user);
-        return ResponseEntity.ok(userDto);
-    }
     
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or (#id == authentication.principal.id and #updateUserDto.role == null)")
@@ -127,28 +117,42 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
     
-    @PutMapping("/{id}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDto> deactivateUser(@PathVariable Long id) {
-        UserUseCase.UpdateUserCommand command = new UserUseCase.UpdateUserCommand();
-        command.setIsActive(false);
-        
-        User user = userUseCase.updateUser(id, command);
-        UserDto userDto = convertToDto(user);
-        
-        return ResponseEntity.ok(userDto);
-    }
     
-    @PutMapping("/{id}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDto> activateUser(@PathVariable Long id) {
+    
+    @PutMapping("/{id}/password")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    public ResponseEntity<?> changePassword(@PathVariable Long id,
+                                           @RequestBody ChangePasswordDto changePasswordDto,
+                                           Authentication authentication) {
+        CustomUserDetailsService.CustomUserDetails currentUser = 
+            (CustomUserDetailsService.CustomUserDetails) authentication.getPrincipal();
+        
+        // If not admin, verify current password
+        if (!authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            if (!currentUser.getId().equals(id)) {
+                throw new UnauthorizedException("You can only change your own password");
+            }
+            
+            // Verify current password
+            User existingUser = userUseCase.findUserById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", id));
+            
+            if (!passwordEncoder.matches(changePasswordDto.getCurrentPassword(), existingUser.getPassword())) {
+                throw new UnauthorizedException("Current password is incorrect");
+            }
+        }
+        
+        // Update password
+        User user = userUseCase.findUserById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("User", id));
+        
         UserUseCase.UpdateUserCommand command = new UserUseCase.UpdateUserCommand();
-        command.setIsActive(true);
+        command.setPassword(passwordEncoder.encode(changePasswordDto.getNewPassword()));
         
-        User user = userUseCase.updateUser(id, command);
-        UserDto userDto = convertToDto(user);
+        userUseCase.updateUser(id, command);
         
-        return ResponseEntity.ok(userDto);
+        return ResponseEntity.ok(java.util.Map.of("message", "Password changed successfully"));
     }
     
     private UserDto convertToDto(User user) {

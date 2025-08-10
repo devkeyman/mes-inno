@@ -6,6 +6,7 @@ import com.mes.adapter.out.persistence.repository.IssueRepository;
 import com.mes.application.port.in.IssueUseCase;
 import com.mes.common.dto.issue.CreateIssueDto;
 import com.mes.common.dto.issue.IssueDto;
+import com.mes.common.dto.issue.ResolveIssueDto;
 import com.mes.common.dto.issue.UpdateIssueDto;
 import com.mes.common.exception.ResourceNotFoundException;
 import com.mes.common.mapper.IssueMapper;
@@ -59,8 +60,39 @@ public class IssueController {
     }
     
     @GetMapping
-    public ResponseEntity<List<IssueDto>> getAllIssues() {
+    public ResponseEntity<List<IssueDto>> getAllIssues(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Long reportedBy) {
+        
         List<Issue> issues = issueRepository.findAll();
+        
+        // Apply filters
+        if (status != null) {
+            issues = issues.stream()
+                .filter(issue -> issue.getStatus() != null && issue.getStatus().toString().equals(status))
+                .collect(Collectors.toList());
+        }
+        
+        if (priority != null) {
+            issues = issues.stream()
+                .filter(issue -> issue.getPriority() != null && issue.getPriority().toString().equals(priority))
+                .collect(Collectors.toList());
+        }
+        
+        if (type != null) {
+            issues = issues.stream()
+                .filter(issue -> issue.getType() != null && issue.getType().equals(type))
+                .collect(Collectors.toList());
+        }
+        
+        if (reportedBy != null) {
+            issues = issues.stream()
+                .filter(issue -> issue.getReporter() != null && issue.getReporter().getId().equals(reportedBy))
+                .collect(Collectors.toList());
+        }
+        
         List<IssueDto> dtos = issues.stream()
             .map(issueMapper::toDto)
             .collect(Collectors.toList());
@@ -138,11 +170,26 @@ public class IssueController {
         return ResponseEntity.noContent().build();
     }
     
-    @PostMapping("/{id}/resolve")
+    @PutMapping("/{id}/resolve")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Map<String, String>> resolveIssue(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> resolveIssue(@PathVariable Long id,
+                                                           @RequestBody ResolveIssueDto resolveDto) {
+        // Update issue with resolution
+        Issue issue = issueRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Issue", id));
+        
+        if (resolveDto.getResolution() != null) {
+            issue.setResolution(resolveDto.getResolution());
+            issueRepository.save(issue);
+        }
+        
         issueUseCase.resolveIssue(id);
-        return ResponseEntity.ok(Map.of("message", "Issue resolved successfully"));
+        
+        Map<String, String> response = new java.util.HashMap<>();
+        response.put("message", "Issue resolved successfully");
+        response.put("resolution", resolveDto.getResolution());
+        
+        return ResponseEntity.ok(response);
     }
     
     @PostMapping("/{id}/close")

@@ -40,6 +40,12 @@ public class Issue {
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
     
+    @Column(columnDefinition = "TEXT")
+    private String resolution;
+    
+    @Column
+    private String type;
+    
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
@@ -71,4 +77,10 @@ public class Issue {
     
     public LocalDateTime getResolvedAt() { return resolvedAt; }
     public void setResolvedAt(LocalDateTime resolvedAt) { this.resolvedAt = resolvedAt; }
+    
+    public String getResolution() { return resolution; }
+    public void setResolution(String resolution) { this.resolution = resolution; }
+    
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 }

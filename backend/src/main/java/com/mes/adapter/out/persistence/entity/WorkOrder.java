@@ -59,6 +59,12 @@ public class WorkOrder {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
+    @Column(name = "actual_quantity")
+    private Integer actualQuantity;
+    
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+    
     @OneToMany(mappedBy = "workOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WorkLog> workLogs = new ArrayList<>();
     
@@ -126,4 +132,10 @@ public class WorkOrder {
     
     public List<Issue> getIssues() { return issues; }
     public void setIssues(List<Issue> issues) { this.issues = issues; }
+    
+    public Integer getActualQuantity() { return actualQuantity; }
+    public void setActualQuantity(Integer actualQuantity) { this.actualQuantity = actualQuantity; }
+    
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
 }

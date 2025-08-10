@@ -20,7 +20,7 @@
 ## 1. Authentication Endpoints
 
 ### Login
-**POST** `/auth/login`
+**POST** `/api/auth/login`
 
 Request:
 ```json
@@ -54,7 +54,7 @@ Error Response (401):
 ```
 
 ### Refresh Token
-**POST** `/auth/refresh`
+**POST** `/api/auth/refresh`
 
 Request:
 ```json
@@ -66,7 +66,7 @@ Request:
 Response: Same as login response
 
 ### Logout
-**POST** `/auth/logout`
+**POST** `/api/auth/logout`
 
 Request:
 ```json
@@ -87,7 +87,7 @@ Response (200):
 ## 2. User Management
 
 ### Get All Users
-**GET** `/users`
+**GET** `/api/users`
 - **Required Role**: ADMIN
 
 Response (200):
@@ -106,7 +106,7 @@ Response (200):
 ```
 
 ### Get User by ID
-**GET** `/users/{id}`
+**GET** `/api/users/{id}`
 - **Required Role**: ADMIN, MANAGER
 
 Response (200):
@@ -123,7 +123,7 @@ Response (200):
 ```
 
 ### Create User
-**POST** `/users`
+**POST** `/api/users`
 - **Required Role**: ADMIN
 
 Request:
@@ -139,7 +139,7 @@ Request:
 Response (201): Created user object
 
 ### Update User
-**PUT** `/users/{id}`
+**PUT** `/api/users/{id}`
 - **Required Role**: ADMIN
 
 Request:
@@ -154,13 +154,13 @@ Request:
 Response (200): Updated user object
 
 ### Delete User
-**DELETE** `/users/{id}`
+**DELETE** `/api/users/{id}`
 - **Required Role**: ADMIN
 
 Response (204): No content
 
 ### Change Password
-**PUT** `/users/{id}/password`
+**PUT** `/api/users/{id}/password`
 - **Required Role**: User can change own password, ADMIN can change any
 
 Request:
@@ -183,7 +183,7 @@ Response (200):
 ## 3. Work Order Management
 
 ### Get All Work Orders
-**GET** `/work-orders`
+**GET** `/api/work-orders`
 - **Optional Query Parameters**:
   - `status`: PENDING, IN_PROGRESS, COMPLETED, CANCELLED
   - `priority`: LOW, MEDIUM, HIGH, URGENT
@@ -214,12 +214,12 @@ Response (200):
 ```
 
 ### Get Work Order by ID
-**GET** `/work-orders/{id}`
+**GET** `/api/work-orders/{id}`
 
 Response (200): Single work order object
 
 ### Create Work Order
-**POST** `/work-orders`
+**POST** `/api/work-orders`
 - **Required Role**: ADMIN, MANAGER
 
 Request:
@@ -239,7 +239,7 @@ Request:
 Response (201): Created work order object
 
 ### Update Work Order
-**PUT** `/work-orders/{id}`
+**PUT** `/api/work-orders/{id}`
 - **Required Role**: ADMIN, MANAGER
 
 Request:
@@ -256,19 +256,19 @@ Request:
 Response (200): Updated work order object
 
 ### Delete Work Order
-**DELETE** `/work-orders/{id}`
+**DELETE** `/api/work-orders/{id}`
 - **Required Role**: ADMIN
 
 Response (204): No content
 
 ### Start Work
-**PUT** `/work-orders/{id}/start`
+**PUT** `/api/work-orders/{id}/start`
 - **Required Role**: Assigned worker or MANAGER
 
 Response (200): Updated work order with status "IN_PROGRESS"
 
 ### Complete Work
-**PUT** `/work-orders/{id}/complete`
+**PUT** `/api/work-orders/{id}/complete`
 - **Required Role**: Assigned worker or MANAGER
 
 Request:
@@ -282,7 +282,7 @@ Request:
 Response (200): Updated work order with status "COMPLETED"
 
 ### Update Progress
-**PUT** `/work-orders/{id}/progress`
+**PUT** `/api/work-orders/{id}/progress`
 - **Required Role**: Assigned worker or MANAGER
 
 Request:
@@ -299,7 +299,7 @@ Response (200): Updated work order
 ## 4. Work Log Management
 
 ### Get All Work Logs
-**GET** `/work-logs`
+**GET** `/api/work-logs`
 - **Optional Query Parameters**:
   - `workOrderId`: Filter by work order
   - `userId`: Filter by user
@@ -327,12 +327,12 @@ Response (200):
 ```
 
 ### Get Work Log by ID
-**GET** `/work-logs/{id}`
+**GET** `/api/work-logs/{id}`
 
 Response (200): Single work log object
 
 ### Create Work Log
-**POST** `/work-logs`
+**POST** `/api/work-logs`
 
 Request:
 ```json
@@ -347,7 +347,7 @@ Request:
 Response (201): Created work log object
 
 ### Get Logs by Work Order
-**GET** `/work-logs/work-order/{workOrderId}`
+**GET** `/api/work-logs/work-order/{workOrderId}`
 
 Response (200): Array of work logs for specific work order
 
@@ -356,7 +356,7 @@ Response (200): Array of work logs for specific work order
 ## 5. Issue Management
 
 ### Get All Issues
-**GET** `/issues`
+**GET** `/api/issues`
 - **Optional Query Parameters**:
   - `status`: OPEN, IN_PROGRESS, RESOLVED, CLOSED
   - `priority`: LOW, MEDIUM, HIGH, CRITICAL
@@ -387,12 +387,12 @@ Response (200):
 ```
 
 ### Get Issue by ID
-**GET** `/issues/{id}`
+**GET** `/api/issues/{id}`
 
 Response (200): Single issue object
 
 ### Create Issue
-**POST** `/issues`
+**POST** `/api/issues`
 
 Request:
 ```json
@@ -408,7 +408,7 @@ Request:
 Response (201): Created issue object
 
 ### Update Issue
-**PUT** `/issues/{id}`
+**PUT** `/api/issues/{id}`
 - **Required Role**: MANAGER, ADMIN, or assigned user
 
 Request:
@@ -424,13 +424,13 @@ Request:
 Response (200): Updated issue object
 
 ### Delete Issue
-**DELETE** `/issues/{id}`
+**DELETE** `/api/issues/{id}`
 - **Required Role**: ADMIN
 
 Response (204): No content
 
 ### Resolve Issue
-**PUT** `/issues/{id}/resolve`
+**PUT** `/api/issues/{id}/resolve`
 - **Required Role**: MANAGER, ADMIN, or assigned user
 
 Request:
@@ -447,7 +447,7 @@ Response (200): Issue with status "RESOLVED"
 ## 6. Dashboard & Statistics
 
 ### Get Dashboard Statistics
-**GET** `/dashboard/stats`
+**GET** `/api/dashboard/stats`
 
 Response (200):
 ```json
@@ -467,19 +467,19 @@ Response (200):
 ```
 
 ### Get Recent Work Orders
-**GET** `/dashboard/recent-work-orders`
+**GET** `/api/dashboard/recent-work-orders`
 - **Query Parameter**: `limit` (default: 10)
 
 Response (200): Array of recent work orders
 
 ### Get Recent Issues
-**GET** `/dashboard/recent-issues`
+**GET** `/api/dashboard/recent-issues`
 - **Query Parameter**: `limit` (default: 10)
 
 Response (200): Array of recent issues
 
 ### Get Recent Activities
-**GET** `/dashboard/recent-activities`
+**GET** `/api/dashboard/recent-activities`
 - **Query Parameter**: `limit` (default: 20)
 
 Response (200):
@@ -498,7 +498,7 @@ Response (200):
 ```
 
 ### Get Production Summary
-**GET** `/dashboard/production-summary`
+**GET** `/api/dashboard/production-summary`
 - **Query Parameters**: 
   - `startDate`: ISO date string
   - `endDate`: ISO date string

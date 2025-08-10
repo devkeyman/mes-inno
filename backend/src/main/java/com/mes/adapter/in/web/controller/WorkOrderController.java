@@ -4,6 +4,7 @@ import com.mes.adapter.in.web.security.CustomUserDetailsService;
 import com.mes.adapter.out.persistence.entity.WorkOrder;
 import com.mes.adapter.out.persistence.repository.WorkOrderRepository;
 import com.mes.application.port.in.WorkOrderUseCase;
+import com.mes.common.dto.workorder.CompleteWorkOrderDto;
 import com.mes.common.dto.workorder.CreateWorkOrderDto;
 import com.mes.common.dto.workorder.WorkOrderDto;
 import com.mes.common.exception.ResourceNotFoundException;
@@ -59,7 +60,12 @@ public class WorkOrderController {
     }
     
     @GetMapping
-    public ResponseEntity<List<WorkOrderDto>> getAllWorkOrders(Authentication authentication) {
+    public ResponseEntity<List<WorkOrderDto>> getAllWorkOrders(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) Long assignedTo,
+            Authentication authentication) {
+        
         CustomUserDetailsService.CustomUserDetails userDetails = 
             (CustomUserDetailsService.CustomUserDetails) authentication.getPrincipal();
         
@@ -70,7 +76,12 @@ public class WorkOrderController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_WORKER"))) {
             workOrders = workOrderRepository.findByAssignedToId(userDetails.getId());
         } else {
-            workOrders = workOrderRepository.findAll();
+            // Apply filters for ADMIN and MANAGER
+            if (status != null || priority != null || assignedTo != null) {
+                workOrders = filterWorkOrders(status, priority, assignedTo);
+            } else {
+                workOrders = workOrderRepository.findAll();
+            }
         }
         
         List<WorkOrderDto> dtos = workOrders.stream()
@@ -78,6 +89,16 @@ public class WorkOrderController {
             .collect(Collectors.toList());
         
         return ResponseEntity.ok(dtos);
+    }
+    
+    private List<WorkOrder> filterWorkOrders(String status, String priority, Long assignedTo) {
+        List<WorkOrder> allOrders = workOrderRepository.findAll();
+        
+        return allOrders.stream()
+            .filter(wo -> status == null || wo.getStatus().toString().equals(status))
+            .filter(wo -> priority == null || wo.getPriority().toString().equals(priority))
+            .filter(wo -> assignedTo == null || (wo.getAssignedTo() != null && wo.getAssignedTo().getId().equals(assignedTo)))
+            .collect(Collectors.toList());
     }
     
     @GetMapping("/{id}")
@@ -100,29 +121,7 @@ public class WorkOrderController {
         return ResponseEntity.ok(dto);
     }
     
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<WorkOrderDto>> getWorkOrdersByStatus(@PathVariable String status) {
-        List<com.mes.domain.model.WorkOrder> workOrders = workOrderUseCase.findWorkOrdersByStatus(status);
-        List<WorkOrderDto> dtos = workOrders.stream()
-            .map(wo -> {
-                WorkOrder entity = workOrderRepository.findById(wo.getId()).orElse(null);
-                return workOrderMapper.toDto(entity);
-            })
-            .collect(Collectors.toList());
-        
-        return ResponseEntity.ok(dtos);
-    }
     
-    @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or #userId == authentication.principal.id")
-    public ResponseEntity<List<WorkOrderDto>> getWorkOrdersByUser(@PathVariable Long userId) {
-        List<WorkOrder> workOrders = workOrderRepository.findByAssignedToId(userId);
-        List<WorkOrderDto> dtos = workOrders.stream()
-            .map(workOrderMapper::toDto)
-            .collect(Collectors.toList());
-        
-        return ResponseEntity.ok(dtos);
-    }
     
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
@@ -143,17 +142,38 @@ public class WorkOrderController {
         return ResponseEntity.noContent().build();
     }
     
-    @PostMapping("/{id}/start")
+    @PutMapping("/{id}/start")
     public ResponseEntity<Map<String, String>> startWork(@PathVariable Long id, Authentication authentication) {
         checkWorkOrderAuthorization(id, authentication);
         workOrderUseCase.startWork(id);
         return ResponseEntity.ok(Map.of("message", "Work started successfully"));
     }
     
-    @PostMapping("/{id}/complete")
-    public ResponseEntity<Map<String, String>> completeWork(@PathVariable Long id, Authentication authentication) {
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<Map<String, String>> completeWork(@PathVariable Long id, 
+                                                           @RequestBody CompleteWorkOrderDto completeDto,
+                                                           Authentication authentication) {
         checkWorkOrderAuthorization(id, authentication);
+        
+        // Update work order with actual quantity and notes
+        WorkOrder workOrder = workOrderRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("WorkOrder", id));
+        
+        if (completeDto.getActualQuantity() != null) {
+            workOrder.setActualQuantity(completeDto.getActualQuantity());
+        }
+        if (completeDto.getNotes() != null) {
+            workOrder.setNotes(completeDto.getNotes());
+        }
+        workOrderRepository.save(workOrder);
+        
         workOrderUseCase.completeWork(id);
+        
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("message", "Work completed successfully");
+        response.put("actualQuantity", completeDto.getActualQuantity());
+        response.put("notes", completeDto.getNotes());
+        
         return ResponseEntity.ok(Map.of("message", "Work completed successfully"));
     }
     
@@ -172,23 +192,6 @@ public class WorkOrderController {
         return ResponseEntity.ok(Map.of("message", "Progress updated successfully"));
     }
     
-    @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Map<String, String>> updateStatus(@PathVariable Long id, 
-                                                           @RequestBody Map<String, String> request) {
-        String status = request.get("status");
-        
-        if (status == null) {
-            throw new IllegalArgumentException("Status value is required");
-        }
-        
-        WorkOrder workOrder = workOrderRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("WorkOrder", id));
-        
-        // Simple status update logic here
-        // In production, this should be in the service layer
-        return ResponseEntity.ok(Map.of("message", "Status updated successfully"));
-    }
     
     private void checkWorkOrderAuthorization(Long workOrderId, Authentication authentication) {
         CustomUserDetailsService.CustomUserDetails userDetails = 

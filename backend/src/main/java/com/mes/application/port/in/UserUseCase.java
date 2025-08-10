@@ -36,6 +36,7 @@ public interface UserUseCase {
         private String name;
         private String role;
         private Boolean isActive;
+        private String password;
         
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
@@ -45,5 +46,8 @@ public interface UserUseCase {
         
         public Boolean getIsActive() { return isActive; }
         public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+        
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
     }
 }

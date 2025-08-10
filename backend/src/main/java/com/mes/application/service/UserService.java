@@ -70,6 +70,9 @@ public class UserService implements UserUseCase {
         if (command.getIsActive() != null) {
             user.setIsActive(command.getIsActive());
         }
+        if (command.getPassword() != null) {
+            user.setPassword(command.getPassword());
+        }
         user.setUpdatedAt(LocalDateTime.now());
         
         return userPort.save(user);
