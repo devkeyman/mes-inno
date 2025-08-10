@@ -31,3 +31,88 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Application Properties ###
+application-local.properties
+application-local.yml
+application-prod.properties
+application-prod.yml
+application-dev.properties
+application-dev.yml
+
+### Security ###
+*.p12
+*.jks
+*.keystore
+*.truststore
+*.pem
+*.key
+*.crt
+*.cer
+
+### Database ###
+*.db
+*.sqlite
+*.sqlite3
+*.h2.db
+*.trace.db
+
+### Logs ###
+logs/
+*.log
+*.log.*
+*.log.gz
+
+### OS Files ###
+.DS_Store
+Thumbs.db
+desktop.ini
+
+### Temporary Files ###
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.#*
+
+### Maven ###
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+dependency-reduced-pom.xml
+
+### Package Files ###
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+### Environment Variables ###
+.env
+.env.local
+.env.*.local
+
+### Testing ###
+/test-output/
+/test-results/
+/coverage/
+*.orig
+
+### Node (if frontend is integrated) ###
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+### Backup Files ###
+*.bak
+*.backup
+*.old
+
+### Custom ###
+/uploads/
+/temp/
+/tmp/

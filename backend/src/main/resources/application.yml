@@ -1,0 +1,41 @@
+spring:
+    application:
+        name: mes-inno
+    datasource:
+        url: jdbc:mysql://localhost:3306/mes_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+        username: admin
+        password: inno0000
+        driver-class-name: com.mysql.cj.jdbc.Driver
+
+    jpa:
+        hibernate:
+            ddl-auto: update  # 테이블 자동 생성/업데이트
+        show-sql: true  # SQL 쿼리 출력
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.MySQL8Dialect
+                format_sql: true  # SQL 포맷팅
+        defer-datasource-initialization: true
+
+    web:
+        resources:
+            static-locations: classpath:/static/
+            cache-period: 3600
+
+server:
+    port: 8080
+    servlet:
+        context-path: /
+
+logging:
+    level:
+        com.mes: DEBUG  # ?? ??? ?? ??
+        org.springframework.web: DEBUG  # Spring Web ??
+        org.hibernate.SQL: DEBUG  # SQL ??
+        org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # ???? ??
+
+# JWT Settings
+jwt:
+    secret: 357638792F423F4528482B4D6251655468576D5A7134743777217A25432A462D4A614E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    expiration: 86400000  # 24 hours in milliseconds
+    refresh-expiration: 604800000  # 7 days in milliseconds

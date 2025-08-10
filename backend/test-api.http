@@ -1,0 +1,116 @@
+### API 테스트 파일
+### IntelliJ IDEA나 VS Code의 REST Client Extension에서 사용 가능
+
+### 변수 설정
+@host = http://localhost:8080
+@contentType = application/json
+@authToken = 
+
+### 1. Health Check - 서버 상태 확인
+GET {{host}}/api/test/health
+
+### 2. 로그인 - JWT 토큰 발급
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@mes.com",
+  "password": "admin123"
+}
+
+### 3. 토큰 설정 (로그인 후 발급받은 토큰을 여기에 입력)
+# 예: Bearer eyJhbGciOiJIUzUxMiJ9...
+@authToken = Bearer YOUR_TOKEN_HERE
+
+### 4. 현재 사용자 정보 조회
+GET {{host}}/api/users/me
+Authorization: {{authToken}}
+
+### 5. 새 사용자 생성 (ADMIN 권한 필요)
+POST {{host}}/api/users
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "email": "worker1@mes.com",
+  "name": "작업자1",
+  "password": "password123",
+  "role": "WORKER"
+}
+
+### 6. 모든 사용자 조회 (ADMIN/MANAGER 권한 필요)
+GET {{host}}/api/users
+Authorization: {{authToken}}
+
+### 7. 작업지시서 생성 (ADMIN/MANAGER 권한 필요)
+POST {{host}}/api/work-orders
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "orderNumber": "WO-2025-001",
+  "productName": "제품A",
+  "productCode": "PRD-001",
+  "quantity": 100,
+  "dueDate": "2025-08-30T18:00:00",
+  "priority": "HIGH",
+  "instructions": "품질 검사 필수"
+}
+
+### 8. 모든 작업지시서 조회
+GET {{host}}/api/work-orders
+Authorization: {{authToken}}
+
+### 9. 작업 로그 생성
+POST {{host}}/api/work-logs
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "workOrderId": 1,
+  "action": "START",
+  "notes": "작업 시작",
+  "progress": 10
+}
+
+### 10. 이슈 생성
+POST {{host}}/api/issues
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "workOrderId": 1,
+  "title": "장비 오작동",
+  "description": "3번 라인 장비에서 이상 소음 발생",
+  "priority": "HIGH"
+}
+
+### 11. 대시보드 요약 정보 (ADMIN/MANAGER 권한 필요)
+GET {{host}}/api/dashboard/summary
+Authorization: {{authToken}}
+
+### 12. 작업지시서 진행률 업데이트
+PUT {{host}}/api/work-orders/1/progress
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "progress": 50
+}
+
+### 13. 작업 완료
+POST {{host}}/api/work-orders/1/complete
+Authorization: {{authToken}}
+
+### 14. 이슈 해결
+POST {{host}}/api/issues/1/resolve
+Authorization: {{authToken}}
+
+### 15. 로그아웃
+POST {{host}}/api/auth/logout
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@mes.com"
+}
