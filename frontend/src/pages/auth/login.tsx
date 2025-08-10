@@ -144,10 +144,10 @@ export const LoginPage: React.FC = () => {
             <p>테스트 계정</p>
             <div className="test-accounts">
               <div className="test-account">
-                <strong>관리자:</strong> admin@mes.com / password123
+                <strong>관리자:</strong> admin@mes.com / admin123
               </div>
               <div className="test-account">
-                <strong>작업자:</strong> worker@mes.com / password123
+                <strong>작업자:</strong> worker@mes.com / worker123
               </div>
             </div>
           </div>
