@@ -36,6 +36,32 @@ public class AuthService implements AuthUseCase {
     
     @Override
     public LoginResponseDto login(LoginRequestDto loginRequest) {
+        System.out.println("=== AuthService Login Debug ===");
+        System.out.println("Email received: " + loginRequest.getEmail());
+        System.out.println("Password received (length): " + loginRequest.getPassword().length());
+        
+        // DB에서 사용자 조회
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+            .orElse(null);
+        
+        if (user == null) {
+            System.out.println("User not found in database!");
+        } else {
+            System.out.println("User found: " + user.getEmail());
+            System.out.println("User active: " + user.getIsActive());
+            System.out.println("Stored password hash: " + user.getPassword());
+            
+            // 비밀번호 직접 검증
+            boolean passwordMatches = passwordEncoder.matches(loginRequest.getPassword(), user.getPassword());
+            System.out.println("Password verification result: " + passwordMatches);
+            
+            if (!passwordMatches) {
+                // 테스트용 암호화된 비밀번호 생성
+                String testEncoded = passwordEncoder.encode(loginRequest.getPassword());
+                System.out.println("Test encoding of input password: " + testEncoded);
+            }
+        }
+        
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 loginRequest.getEmail(),
@@ -51,7 +77,7 @@ public class AuthService implements AuthUseCase {
         CustomUserDetailsService.CustomUserDetails userDetails = 
             (CustomUserDetailsService.CustomUserDetails) authentication.getPrincipal();
         
-        User user = userRepository.findByEmail(userDetails.getUsername())
+        User authenticatedUser = userRepository.findByEmail(userDetails.getUsername())
             .orElseThrow(() -> new RuntimeException("User not found"));
         
         return new LoginResponseDto(
@@ -60,7 +86,7 @@ public class AuthService implements AuthUseCase {
             userDetails.getId(),
             userDetails.getUsername(),
             userDetails.getName(),
-            user.getRole() != null ? user.getRole().name() : "WORKER"
+            authenticatedUser.getRole() != null ? authenticatedUser.getRole().name() : "WORKER"
         );
     }
     

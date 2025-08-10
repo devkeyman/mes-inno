@@ -26,14 +26,21 @@ public class WorkLog {
     @Column(columnDefinition = "TEXT")
     private String notes;
     
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    
     private Integer progress;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
+    @Column(name = "logged_at")
+    private LocalDateTime loggedAt;
+    
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
+        this.loggedAt = LocalDateTime.now();
     }
     
     public Long getId() { return id; }
@@ -56,4 +63,13 @@ public class WorkLog {
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    
+    public LocalDateTime getLoggedAt() { return loggedAt; }
+    public void setLoggedAt(LocalDateTime loggedAt) { this.loggedAt = loggedAt; }
+    
+    public User getUser() { return worker; }
+    public void setUser(User user) { this.worker = user; }
 }

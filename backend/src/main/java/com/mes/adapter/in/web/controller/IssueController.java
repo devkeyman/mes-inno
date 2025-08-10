@@ -109,41 +109,8 @@ public class IssueController {
         return ResponseEntity.ok(dto);
     }
     
-    @GetMapping("/work-order/{workOrderId}")
-    public ResponseEntity<List<IssueDto>> getIssuesByWorkOrder(@PathVariable Long workOrderId) {
-        List<Issue> issues = issueRepository.findByWorkOrderId(workOrderId);
-        List<IssueDto> dtos = issues.stream()
-            .map(issueMapper::toDto)
-            .collect(Collectors.toList());
-        
-        return ResponseEntity.ok(dtos);
-    }
     
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<IssueDto>> getIssuesByStatus(@PathVariable String status) {
-        List<com.mes.domain.model.Issue> issues = issueUseCase.findByStatus(status);
-        List<IssueDto> dtos = issues.stream()
-            .map(i -> {
-                Issue entity = issueRepository.findById(i.getId()).orElse(null);
-                return issueMapper.toDto(entity);
-            })
-            .collect(Collectors.toList());
-        
-        return ResponseEntity.ok(dtos);
-    }
     
-    @GetMapping("/my-issues")
-    public ResponseEntity<List<IssueDto>> getMyIssues(Authentication authentication) {
-        CustomUserDetailsService.CustomUserDetails userDetails = 
-            (CustomUserDetailsService.CustomUserDetails) authentication.getPrincipal();
-        
-        List<Issue> issues = issueRepository.findByReporterId(userDetails.getId());
-        List<IssueDto> dtos = issues.stream()
-            .map(issueMapper::toDto)
-            .collect(Collectors.toList());
-        
-        return ResponseEntity.ok(dtos);
-    }
     
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @issueRepository.findById(#id).orElse(null)?.reporter?.id == authentication.principal.id")
@@ -192,26 +159,5 @@ public class IssueController {
         return ResponseEntity.ok(response);
     }
     
-    @PostMapping("/{id}/close")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Map<String, String>> closeIssue(@PathVariable Long id) {
-        issueUseCase.closeIssue(id);
-        return ResponseEntity.ok(Map.of("message", "Issue closed successfully"));
-    }
     
-    @PutMapping("/{id}/status")
-    public ResponseEntity<Map<String, String>> updateIssueStatus(@PathVariable Long id,
-                                                                 @RequestBody Map<String, String> request) {
-        String status = request.get("status");
-        
-        if (status == null) {
-            throw new IllegalArgumentException("Status value is required");
-        }
-        
-        IssueUseCase.UpdateIssueCommand command = new IssueUseCase.UpdateIssueCommand();
-        command.setStatus(status);
-        
-        issueUseCase.updateIssue(id, command);
-        return ResponseEntity.ok(Map.of("message", "Issue status updated successfully"));
-    }
 }

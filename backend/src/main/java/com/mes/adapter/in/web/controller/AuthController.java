@@ -22,7 +22,14 @@ public class AuthController {
     
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequest) {
+        System.out.println("=== Login Request Received ===");
+        System.out.println("Email: " + loginRequest.getEmail());
+        System.out.println("Password: " + (loginRequest.getPassword() != null ? "***" : "null"));
+        System.out.println("Timestamp: " + java.time.LocalDateTime.now());
+        
         LoginResponseDto response = authUseCase.login(loginRequest);
+        
+        System.out.println("Login successful for: " + loginRequest.getEmail());
         return ResponseEntity.ok(response);
     }
     

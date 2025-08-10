@@ -32,4 +32,6 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Long> {
     
     @Query("SELECT COUNT(w) FROM WorkOrder w WHERE w.status = :status")
     long countByStatus(@Param("status") WorkStatus status);
+    
+    List<WorkOrder> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 }
