@@ -1,575 +1,215 @@
-# Smart Factory MES Backend API Specification
+# Smart Factory MES (Manufacturing Execution System)
 
-## Base Information
-- **Base URL**: `http://localhost:8080/api`
-- **Authentication**: JWT Bearer Token
-- **Content-Type**: `application/json`
+스마트 팩토리를 위한 제조 실행 시스템(MES) - 생산 관리, 작업 지시, 품질 이슈 추적을 위한 통합 플랫폼
 
-## Authentication Flow
-1. Login with email/password to get JWT token
-2. Include token in Authorization header: `Bearer {token}`
-3. Token expires in 24 hours, refresh token expires in 7 days
+## 📋 프로젝트 개요
 
-## User Roles
-- **ADMIN**: Full system access
-- **MANAGER**: Can manage work orders and view all data
-- **WORKER**: Can update assigned work and report issues
+Smart Factory MES는 제조 현장의 생산 활동을 실시간으로 모니터링하고 관리하는 웹 기반 시스템입니다. 작업 지시서 관리, 생산 진행 상황 추적, 품질 이슈 관리 등의 기능을 제공하여 제조 현장의 효율성을 극대화합니다.
 
----
+### 주요 기능
 
-## 1. Authentication Endpoints
+- **사용자 인증 및 권한 관리**: JWT 기반 인증, 역할별 접근 제어 (관리자/매니저/작업자)
+- **작업 지시서 관리**: 작업 생성, 할당, 진행 상황 추적, 완료 처리
+- **생산 모니터링**: 실시간 생산 현황 대시보드, 생산 통계 및 리포트
+- **품질 이슈 관리**: 이슈 보고, 추적, 해결 프로세스 관리
+- **작업 로그**: 모든 작업 활동 기록 및 추적
 
-### Login
-**POST** `/auth/login`
+## 🚀 기술 스택
 
-Request:
-```json
-{
-  "email": "admin@mes.com",
-  "password": "admin123"
-}
+### Backend
+- **Framework**: Spring Boot 3.5.4
+- **Language**: Java 17
+- **Database**: MySQL
+- **Security**: Spring Security + JWT
+- **ORM**: Spring Data JPA / Hibernate
+- **Build Tool**: Maven
+- **Architecture**: Hexagonal Architecture (Port & Adapter Pattern)
+
+### Frontend
+- **Framework**: React 19.1.1 + TypeScript 5.9.2
+- **Build Tool**: Vite 7.1.0
+- **Routing**: React Router DOM 7.8.0
+- **State Management**: Zustand 5.0.7
+- **API Client**: Axios 1.11.0 + React Query 5.84.2
+- **UI Icons**: Lucide React
+- **Architecture**: Feature-Sliced Design
+
+## 📁 프로젝트 구조
+
+```
+smart-factory-mes/
+├── backend/                    # Spring Boot 백엔드
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/mes/
+│   │   │   │   ├── adapter/       # 어댑터 레이어 (Web, Persistence)
+│   │   │   │   ├── application/   # 애플리케이션 레이어 (UseCase, Service)
+│   │   │   │   ├── domain/        # 도메인 레이어 (Model, Service)
+│   │   │   │   ├── config/        # 설정 클래스
+│   │   │   │   └── common/        # 공통 컴포넌트 (DTO, Exception, Mapper)
+│   │   │   └── resources/
+│   │   │       ├── application.yml
+│   │   │       └── static/        # 빌드된 프론트엔드 파일
+│   │   └── test/
+│   └── pom.xml
+│
+├── frontend/                   # React 프론트엔드
+│   ├── src/
+│   │   ├── app/               # 앱 설정 (라우터, 레이아웃)
+│   │   ├── entities/          # 비즈니스 엔티티
+│   │   ├── features/          # 기능 모듈
+│   │   ├── pages/             # 페이지 컴포넌트
+│   │   ├── shared/            # 공유 컴포넌트 및 유틸리티
+│   │   └── widgets/           # UI 위젯
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── scripts/                    # 유틸리티 스크립트
+└── docs/                       # 프로젝트 문서
+
 ```
 
-Response (200):
-```json
-{
-  "token": "eyJhbGciOiJIUzUxMiJ9...",
-  "refreshToken": "eyJhbGciOiJIUzUxMiJ9...",
-  "type": "Bearer",
-  "id": 1,
-  "email": "admin@mes.com",
-  "name": "관리자",
-  "role": "ADMIN"
-}
+## 🛠️ 설치 및 실행
+
+### 사전 요구사항
+
+- Java 17 이상
+- Node.js 18 이상
+- MySQL 8.0 이상
+- Maven 3.6 이상
+
+### Backend 설정
+
+1. 데이터베이스 설정
+```bash
+# MySQL 데이터베이스 생성
+mysql -u root -p
+CREATE DATABASE mes_db;
 ```
 
-Error Response (401):
-```json
-{
-  "status": 401,
-  "message": "Invalid email or password",
-  "timestamp": "2025-08-10T12:52:53.623794",
-  "errors": null
-}
+2. application.yml 설정
+```yaml
+# backend/src/main/resources/application.yml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/mes_db
+    username: your_username
+    password: your_password
 ```
 
-### Refresh Token
-**POST** `/auth/refresh`
-
-Request:
-```json
-{
-  "refreshToken": "eyJhbGciOiJIUzUxMiJ9..."
-}
+3. 백엔드 실행
+```bash
+cd backend
+./mvnw spring-boot:run
 ```
 
-Response: Same as login response
+백엔드 서버가 http://localhost:8080 에서 실행됩니다.
 
-### Logout
-**POST** `/auth/logout`
+### Frontend 설정
 
-Request:
-```json
-{
-  "email": "admin@mes.com"
-}
+1. 의존성 설치
+```bash
+cd frontend
+npm install
 ```
 
-Response (200):
-```json
-{
-  "message": "Logout successful"
-}
+2. 환경 변수 설정
+```bash
+# .env 파일 생성
+cp env.example .env
+# API 엔드포인트 설정
+VITE_API_URL=http://localhost:8080/api
 ```
 
----
-
-## 2. User Management
-
-### Get All Users
-**GET** `/users`
-- **Required Role**: ADMIN
-
-Response (200):
-```json
-[
-  {
-    "id": 1,
-    "email": "admin@mes.com",
-    "name": "관리자",
-    "role": "ADMIN",
-    "isActive": true,
-    "createdAt": "2025-08-10T12:40:59.957611",
-    "updatedAt": "2025-08-10T12:40:59.957616"
-  }
-]
+3. 개발 서버 실행
+```bash
+npm run dev
 ```
 
-### Get User by ID
-**GET** `/users/{id}`
-- **Required Role**: ADMIN, MANAGER
+프론트엔드가 http://localhost:5173 에서 실행됩니다.
 
-Response (200):
-```json
-{
-  "id": 1,
-  "email": "admin@mes.com",
-  "name": "관리자",
-  "role": "ADMIN",
-  "isActive": true,
-  "createdAt": "2025-08-10T12:40:59.957611",
-  "updatedAt": "2025-08-10T12:40:59.957616"
-}
+## 🔨 빌드 및 배포
+
+### 전체 빌드 (Frontend + Backend)
+```bash
+# 루트 디렉토리에서
+./scripts/build.sh
 ```
 
-### Create User
-**POST** `/users`
-- **Required Role**: ADMIN
+### 개별 빌드
 
-Request:
-```json
-{
-  "email": "newuser@mes.com",
-  "name": "새 사용자",
-  "password": "password123",
-  "role": "WORKER"
-}
+**Frontend 빌드**
+```bash
+cd frontend
+npm run build
 ```
 
-Response (201): Created user object
-
-### Update User
-**PUT** `/users/{id}`
-- **Required Role**: ADMIN
-
-Request:
-```json
-{
-  "name": "수정된 이름",
-  "role": "MANAGER",
-  "isActive": true
-}
+**Backend 빌드**
+```bash
+cd backend
+./mvnw clean package
 ```
 
-Response (200): Updated user object
-
-### Delete User
-**DELETE** `/users/{id}`
-- **Required Role**: ADMIN
-
-Response (204): No content
-
-### Change Password
-**PUT** `/users/{id}/password`
-- **Required Role**: User can change own password, ADMIN can change any
-
-Request:
-```json
-{
-  "currentPassword": "oldPassword123",
-  "newPassword": "newPassword123"
-}
+### Docker 배포 (선택사항)
+```bash
+docker-compose up -d
 ```
 
-Response (200):
-```json
-{
-  "message": "Password changed successfully"
-}
+## 📝 API 문서
+
+API 명세는 [API_SPECIFICATION.md](./backend/API_SPECIFICATION.md) 파일을 참조하세요.
+
+주요 엔드포인트:
+- `/api/auth/*` - 인증 관련
+- `/api/users/*` - 사용자 관리
+- `/api/work-orders/*` - 작업 지시서 관리
+- `/api/issues/*` - 이슈 관리
+- `/api/dashboard/*` - 대시보드 통계
+
+## 👤 사용자 권한
+
+시스템은 3가지 사용자 역할을 지원합니다:
+
+| 역할 | 권한 |
+|------|------|
+| **ADMIN** | 시스템 전체 관리, 사용자 관리, 모든 데이터 접근 |
+| **MANAGER** | 작업 지시서 관리, 이슈 할당, 보고서 조회 |
+| **WORKER** | 할당된 작업 수행, 이슈 보고, 작업 로그 작성 |
+
+### 테스트 계정
+- Admin: `admin@mes.com` / `admin123`
+- Manager: `manager@mes.com` / `manager123`
+- Worker: `worker@mes.com` / `worker123`
+
+## 🔧 개발 가이드
+
+### 코드 스타일
+- Backend: Java 코딩 컨벤션 준수
+- Frontend: ESLint + TypeScript 규칙 적용
+
+### 커밋 메시지 규칙
+```
+feat: 새로운 기능 추가
+fix: 버그 수정
+docs: 문서 수정
+style: 코드 포맷팅
+refactor: 코드 리팩토링
+test: 테스트 코드
+chore: 빌드 업무 수정
 ```
 
----
+## 📄 라이선스
 
-## 3. Work Order Management
+이 프로젝트는 MIT 라이선스 하에 있습니다.
 
-### Get All Work Orders
-**GET** `/work-orders`
-- **Optional Query Parameters**:
-  - `status`: PENDING, IN_PROGRESS, COMPLETED, CANCELLED
-  - `priority`: LOW, MEDIUM, HIGH, URGENT
-  - `assignedTo`: User ID
+## 🤝 기여하기
 
-Response (200):
-```json
-[
-  {
-    "id": 1,
-    "orderNumber": "WO-2025-001",
-    "productName": "테스트 제품",
-    "productCode": "PROD-001",
-    "quantity": 100,
-    "dueDate": "2025-08-15T10:00:00",
-    "priority": "HIGH",
-    "status": "PENDING",
-    "instructions": "특별 지시사항",
-    "progress": 0,
-    "assignedToId": 3,
-    "assignedToName": "작업자",
-    "startedAt": null,
-    "completedAt": null,
-    "createdAt": "2025-08-10T12:52:38.209933",
-    "updatedAt": "2025-08-10T12:52:38.209936"
-  }
-]
-```
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'feat: Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-### Get Work Order by ID
-**GET** `/work-orders/{id}`
+## 📞 문의
 
-Response (200): Single work order object
-
-### Create Work Order
-**POST** `/work-orders`
-- **Required Role**: ADMIN, MANAGER
-
-Request:
-```json
-{
-  "orderNumber": "WO-2025-002",
-  "productName": "제품명",
-  "productCode": "PROD-002",
-  "quantity": 50,
-  "dueDate": "2025-08-20T15:00:00",
-  "priority": "MEDIUM",
-  "instructions": "작업 지시사항",
-  "assignedToId": 3
-}
-```
-
-Response (201): Created work order object
-
-### Update Work Order
-**PUT** `/work-orders/{id}`
-- **Required Role**: ADMIN, MANAGER
-
-Request:
-```json
-{
-  "quantity": 150,
-  "priority": "URGENT",
-  "status": "IN_PROGRESS",
-  "progress": 50,
-  "assignedToId": 4
-}
-```
-
-Response (200): Updated work order object
-
-### Delete Work Order
-**DELETE** `/work-orders/{id}`
-- **Required Role**: ADMIN
-
-Response (204): No content
-
-### Start Work
-**PUT** `/work-orders/{id}/start`
-- **Required Role**: Assigned worker or MANAGER
-
-Response (200): Updated work order with status "IN_PROGRESS"
-
-### Complete Work
-**PUT** `/work-orders/{id}/complete`
-- **Required Role**: Assigned worker or MANAGER
-
-Request:
-```json
-{
-  "actualQuantity": 98,
-  "notes": "완료 메모"
-}
-```
-
-Response (200): Updated work order with status "COMPLETED"
-
-### Update Progress
-**PUT** `/work-orders/{id}/progress`
-- **Required Role**: Assigned worker or MANAGER
-
-Request:
-```json
-{
-  "progress": 75
-}
-```
-
-Response (200): Updated work order
-
----
-
-## 4. Work Log Management
-
-### Get All Work Logs
-**GET** `/work-logs`
-- **Optional Query Parameters**:
-  - `workOrderId`: Filter by work order
-  - `userId`: Filter by user
-  - `action`: CREATE, UPDATE, START, PAUSE, RESUME, COMPLETE, CANCEL
-  - `startDate`: ISO date string
-  - `endDate`: ISO date string
-
-Response (200):
-```json
-[
-  {
-    "id": 1,
-    "workOrderId": 1,
-    "workOrderNumber": "WO-2025-001",
-    "userId": 3,
-    "userName": "작업자",
-    "action": "START",
-    "description": "작업 시작",
-    "beforeStatus": "PENDING",
-    "afterStatus": "IN_PROGRESS",
-    "quantityProduced": 0,
-    "loggedAt": "2025-08-10T13:00:00"
-  }
-]
-```
-
-### Get Work Log by ID
-**GET** `/work-logs/{id}`
-
-Response (200): Single work log object
-
-### Create Work Log
-**POST** `/work-logs`
-
-Request:
-```json
-{
-  "workOrderId": 1,
-  "action": "UPDATE",
-  "description": "진행률 업데이트",
-  "quantityProduced": 25
-}
-```
-
-Response (201): Created work log object
-
-### Get Logs by Work Order
-**GET** `/work-logs/work-order/{workOrderId}`
-
-Response (200): Array of work logs for specific work order
-
----
-
-## 5. Issue Management
-
-### Get All Issues
-**GET** `/issues`
-- **Optional Query Parameters**:
-  - `status`: OPEN, IN_PROGRESS, RESOLVED, CLOSED
-  - `priority`: LOW, MEDIUM, HIGH, CRITICAL
-  - `type`: QUALITY, EQUIPMENT, MATERIAL, PROCESS, SAFETY, OTHER
-  - `reportedBy`: User ID
-
-Response (200):
-```json
-[
-  {
-    "id": 1,
-    "title": "장비 오작동",
-    "description": "3번 라인 장비 오류 발생",
-    "type": "EQUIPMENT",
-    "priority": "HIGH",
-    "status": "OPEN",
-    "workOrderId": 1,
-    "workOrderNumber": "WO-2025-001",
-    "reportedById": 3,
-    "reportedByName": "작업자",
-    "assignedToId": 2,
-    "assignedToName": "매니저",
-    "resolution": null,
-    "reportedAt": "2025-08-10T14:00:00",
-    "resolvedAt": null
-  }
-]
-```
-
-### Get Issue by ID
-**GET** `/issues/{id}`
-
-Response (200): Single issue object
-
-### Create Issue
-**POST** `/issues`
-
-Request:
-```json
-{
-  "title": "품질 문제",
-  "description": "제품 불량 발견",
-  "type": "QUALITY",
-  "priority": "MEDIUM",
-  "workOrderId": 1
-}
-```
-
-Response (201): Created issue object
-
-### Update Issue
-**PUT** `/issues/{id}`
-- **Required Role**: MANAGER, ADMIN, or assigned user
-
-Request:
-```json
-{
-  "status": "IN_PROGRESS",
-  "priority": "CRITICAL",
-  "assignedToId": 2,
-  "resolution": "문제 해결 중"
-}
-```
-
-Response (200): Updated issue object
-
-### Delete Issue
-**DELETE** `/issues/{id}`
-- **Required Role**: ADMIN
-
-Response (204): No content
-
-### Resolve Issue
-**PUT** `/issues/{id}/resolve`
-- **Required Role**: MANAGER, ADMIN, or assigned user
-
-Request:
-```json
-{
-  "resolution": "장비 교체 완료"
-}
-```
-
-Response (200): Issue with status "RESOLVED"
-
----
-
-## 6. Dashboard & Statistics
-
-### Get Dashboard Statistics
-**GET** `/dashboard/stats`
-
-Response (200):
-```json
-{
-  "totalWorkOrders": 45,
-  "pendingWorkOrders": 12,
-  "inProgressWorkOrders": 8,
-  "completedWorkOrders": 25,
-  "totalIssues": 15,
-  "openIssues": 5,
-  "resolvedIssues": 10,
-  "todayWorkOrders": 3,
-  "todayCompletedOrders": 2,
-  "averageCompletionRate": 95.5,
-  "onTimeDeliveryRate": 88.0
-}
-```
-
-### Get Recent Work Orders
-**GET** `/dashboard/recent-work-orders`
-- **Query Parameter**: `limit` (default: 10)
-
-Response (200): Array of recent work orders
-
-### Get Recent Issues
-**GET** `/dashboard/recent-issues`
-- **Query Parameter**: `limit` (default: 10)
-
-Response (200): Array of recent issues
-
-### Get Recent Activities
-**GET** `/dashboard/recent-activities`
-- **Query Parameter**: `limit` (default: 20)
-
-Response (200):
-```json
-[
-  {
-    "id": 1,
-    "type": "WORK_ORDER",
-    "action": "CREATED",
-    "description": "작업 지시서 WO-2025-001 생성됨",
-    "userId": 1,
-    "userName": "관리자",
-    "timestamp": "2025-08-10T12:52:38"
-  }
-]
-```
-
-### Get Production Summary
-**GET** `/dashboard/production-summary`
-- **Query Parameters**: 
-  - `startDate`: ISO date string
-  - `endDate`: ISO date string
-
-Response (200):
-```json
-{
-  "totalQuantityOrdered": 1500,
-  "totalQuantityProduced": 1420,
-  "productionRate": 94.67,
-  "byProduct": [
-    {
-      "productName": "제품 A",
-      "ordered": 500,
-      "produced": 480,
-      "rate": 96.0
-    }
-  ],
-  "byDate": [
-    {
-      "date": "2025-08-10",
-      "ordered": 200,
-      "produced": 195
-    }
-  ]
-}
-```
-
----
-
-## Error Response Format
-
-All error responses follow this format:
-
-```json
-{
-  "status": 400,
-  "message": "Validation failed",
-  "timestamp": "2025-08-10T12:52:28.774716",
-  "errors": {
-    "fieldName": "Error message"
-  }
-}
-```
-
-## HTTP Status Codes
-- **200**: OK - Request successful
-- **201**: Created - Resource created successfully
-- **204**: No Content - Request successful, no content to return
-- **400**: Bad Request - Invalid request data
-- **401**: Unauthorized - Authentication required or failed
-- **403**: Forbidden - Insufficient permissions
-- **404**: Not Found - Resource not found
-- **409**: Conflict - Resource already exists
-- **500**: Internal Server Error - Server error
-
-## Test Credentials
-- **Admin**: admin@mes.com / admin123
-- **Manager**: manager@mes.com / manager123
-- **Worker**: worker@mes.com / worker123
-
-## CORS Settings
-Allowed origins:
-- http://localhost:3000
-- http://localhost:5173
-
-## Notes for Frontend Development
-1. Always include JWT token in Authorization header after login
-2. Handle token expiration and refresh automatically
-3. Store token securely (HttpOnly cookies recommended for production)
-4. Implement role-based UI rendering based on user role
-5. Handle error responses appropriately with user-friendly messages
-6. Use ISO 8601 format for all date/time fields
-7. All timestamps are in UTC
+프로젝트 관련 문의사항은 이슈 트래커를 통해 등록해 주세요.
