@@ -3,6 +3,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useLogin } from "@/features/auth/hooks/use-auth";
 import { useAuthStore } from "@/shared/stores";
 import { LoginRequest } from "@/entities/user";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
+import { Card } from "@/shared/components/ui/card";
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -76,82 +80,84 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <div className="login-header">
-          <h1>Smart Factory MES</h1>
-          <p>스마트 팩토리 제조 실행 시스템</p>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Smart Factory MES</h1>
+          <p className="text-gray-600">스마트 팩토리 제조 실행 시스템</p>
         </div>
 
-        <div className="login-form-container">
-          <h2>로그인</h2>
+        <Card className="p-6 shadow-lg">
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">로그인</h2>
+          </div>
 
-          <form onSubmit={handleSubmit} className="login-form">
-            <div className="form-group">
-              <label htmlFor="email" className="form-label">
-                이메일
-              </label>
-              <input
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">이메일</Label>
+              <Input
                 type="email"
                 id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className={`form-input ${errors.email ? "error" : ""}`}
+                className={errors.email ? "border-red-500" : ""}
                 placeholder="이메일을 입력하세요"
                 disabled={login.isPending}
               />
               {errors.email && (
-                <span className="error-message">{errors.email}</span>
+                <span className="text-sm text-red-600">{errors.email}</span>
               )}
             </div>
 
-            <div className="form-group">
-              <label htmlFor="password" className="form-label">
-                비밀번호
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="password">비밀번호</Label>
+              <Input
                 type="password"
                 id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className={`form-input ${errors.password ? "error" : ""}`}
+                className={errors.password ? "border-red-500" : ""}
                 placeholder="비밀번호를 입력하세요"
                 disabled={login.isPending}
               />
               {errors.password && (
-                <span className="error-message">{errors.password}</span>
+                <span className="text-sm text-red-600">{errors.password}</span>
               )}
             </div>
 
             {login.error && (
-              <div className="login-error">
-                <p>로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.</p>
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-sm text-red-600">
+                  로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.
+                </p>
               </div>
             )}
 
-            <button
+            <Button
               type="submit"
-              className="login-button"
+              className="w-full"
               disabled={login.isPending}
             >
               {login.isPending ? "로그인 중..." : "로그인"}
-            </button>
+            </Button>
           </form>
 
-          <div className="login-footer">
-            <p>테스트 계정</p>
-            <div className="test-accounts">
-              <div className="test-account">
-                <strong>관리자:</strong> admin@mes.com / admin123
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <p className="text-sm font-medium text-gray-700 mb-3 text-center">테스트 계정</p>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div className="flex justify-between">
+                <span className="font-medium">관리자:</span> 
+                <span>admin@mes.com / admin123</span>
               </div>
-              <div className="test-account">
-                <strong>작업자:</strong> worker@mes.com / worker123
+              <div className="flex justify-between">
+                <span className="font-medium">작업자:</span> 
+                <span>worker@mes.com / worker123</span>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

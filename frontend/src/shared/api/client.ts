@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
+import { useAuthStore } from "@/shared/stores";
 
 // API 클라이언트 설정
 const API_BASE_URL = "http://localhost:8080/api";
@@ -15,9 +16,9 @@ const apiClient: AxiosInstance = axios.create({
 // Request 인터셉터 - JWT 토큰 추가
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const { accessToken } = useAuthStore.getState();
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
@@ -38,22 +39,21 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
+        const { refreshToken } = useAuthStore.getState();
         if (refreshToken) {
           const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
             refreshToken,
           });
 
-          const { token } = response.data;
-          localStorage.setItem("accessToken", token);
+          const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
+          useAuthStore.getState().setTokens(newAccessToken, newRefreshToken);
 
-          originalRequest.headers.Authorization = `Bearer ${token}`;
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
         // 리프레시 토큰도 만료된 경우 로그아웃
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        useAuthStore.getState().logout();
         window.location.href = "/login";
       }
     }

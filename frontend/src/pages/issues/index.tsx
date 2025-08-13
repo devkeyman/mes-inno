@@ -5,12 +5,14 @@ import { IssueDetail } from "@/widgets/issues/issue-detail";
 import {
   useCreateIssue,
   useUpdateIssue,
+  useIssues,
 } from "@/features/issues/hooks/use-issues";
 import {
   Issue,
   CreateIssueRequest,
   UpdateIssueRequest,
 } from "@/entities/issues";
+import { Button } from "@/shared/components/ui/button";
 
 type ViewMode = "list" | "create" | "edit" | "detail";
 
@@ -20,6 +22,7 @@ const IssuesPage: React.FC = () => {
 
   const createIssue = useCreateIssue();
   const updateIssue = useUpdateIssue();
+  const { data: issues } = useIssues();
 
   const handleCreate = () => {
     setSelectedIssue(null);
@@ -64,19 +67,31 @@ const IssuesPage: React.FC = () => {
   const isLoading = createIssue.isPending || updateIssue.isPending;
 
   return (
-    <div className="issues-page">
-      <header className="page-header">
-        <h1>이슈 관리</h1>
-        <p>생산 이슈 및 개선 사항 관리</p>
+    <div className="space-y-8">
+      <header className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">이슈 관리</h1>
+            <p className="mt-1 text-sm text-gray-500">생산 현장의 문제점을 추적하고 개선사항을 관리합니다</p>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="px-2 py-1 bg-yellow-50 text-yellow-700 rounded-md font-medium">
+              미해결 {issues?.filter(i => i.status === 'OPEN').length || 0}건
+            </span>
+            <span className="px-2 py-1 bg-green-50 text-green-700 rounded-md font-medium">
+              해결완료 {issues?.filter(i => i.status === 'RESOLVED').length || 0}건
+            </span>
+          </div>
+        </div>
       </header>
 
-      <main className="page-content">
+      <main className="space-y-8">
         {viewMode === "list" && (
           <>
-            <div className="issues-controls">
-              <button className="btn-primary" onClick={handleCreate}>
+            <div className="flex justify-end">
+              <Button onClick={handleCreate}>
                 새 이슈 등록
-              </button>
+              </Button>
             </div>
 
             <IssuesGrid onEdit={handleEdit} onView={handleView} />

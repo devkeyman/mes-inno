@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/shared/lib/utils";
 
 interface LoadingProps {
   size?: "small" | "medium" | "large";
@@ -12,15 +13,25 @@ export const Loading: React.FC<LoadingProps> = ({
   className = "",
 }) => {
   const sizeClasses = {
-    small: "w-4 h-4",
-    medium: "w-8 h-8",
-    large: "w-12 h-12",
+    small: "h-4 w-4",
+    medium: "h-8 w-8",
+    large: "h-12 w-12",
   };
 
   return (
-    <div className={`loading-container ${className}`}>
-      <div className={`loading-spinner ${sizeClasses[size]}`}></div>
-      {text && <p className="loading-text">{text}</p>}
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-4",
+        className
+      )}
+    >
+      <div
+        className={cn(
+          "animate-spin rounded-full border-4 border-gray-200 border-t-primary",
+          sizeClasses[size]
+        )}
+      />
+      {text && <p className="text-sm text-muted-foreground">{text}</p>}
     </div>
   );
 };

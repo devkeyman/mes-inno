@@ -4,6 +4,18 @@ import {
   useDeleteWorkOrder,
 } from "@/features/production/hooks/use-work-orders";
 import { WorkOrder, WorkOrderStatus } from "@/entities/production";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
+import { Select } from "@/shared/components/ui/select";
+import { Card } from "@/shared/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/components/ui/table";
 
 interface WorkOrdersTableProps {
   onEdit: (workOrder: WorkOrder) => void;
@@ -14,35 +26,35 @@ const StatusBadge: React.FC<{ status: WorkOrderStatus }> = ({ status }) => {
   const getStatusConfig = (status: WorkOrderStatus) => {
     switch (status) {
       case "PENDING":
-        return { label: "대기", className: "status-pending" };
+        return { label: "대기", variant: "secondary" as const };
       case "IN_PROGRESS":
-        return { label: "진행 중", className: "status-progress" };
+        return { label: "진행 중", variant: "default" as const };
       case "COMPLETED":
-        return { label: "완료", className: "status-completed" };
+        return { label: "완료", variant: "success" as const };
       case "CANCELLED":
-        return { label: "취소", className: "status-cancelled" };
+        return { label: "취소", variant: "destructive" as const };
       default:
-        return { label: status, className: "status-default" };
+        return { label: status, variant: "outline" as const };
     }
   };
 
   const config = getStatusConfig(status);
 
   return (
-    <span className={`status-badge ${config.className}`}>{config.label}</span>
+    <Badge variant={config.variant}>{config.label}</Badge>
   );
 };
 
 const ProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
   return (
-    <div className="progress-container">
-      <div className="progress-bar">
+    <div className="flex items-center gap-2">
+      <div className="flex-1 bg-gray-200 rounded-full h-2">
         <div
-          className="progress-fill"
+          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
           style={{ width: `${Math.min(progress, 100)}%` }}
         ></div>
       </div>
-      <span className="progress-text">{progress}%</span>
+      <span className="text-sm text-gray-600 min-w-[2.5rem]">{progress}%</span>
     </div>
   );
 };
@@ -71,122 +83,126 @@ export const WorkOrdersTable: React.FC<WorkOrdersTableProps> = ({
 
   if (isLoading) {
     return (
-      <div className="work-orders-table">
-        <div className="table-loading">
-          <div className="skeleton-row"></div>
-          <div className="skeleton-row"></div>
-          <div className="skeleton-row"></div>
-          <div className="skeleton-row"></div>
+      <Card className="p-6">
+        <div className="space-y-4">
+          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
         </div>
-      </div>
+      </Card>
     );
   }
 
   if (error) {
     return (
-      <div className="work-orders-table">
-        <div className="table-error">
+      <Card className="p-6">
+        <div className="text-center text-red-600">
           <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="work-orders-table">
+    <div className="space-y-6">
       {/* 필터 */}
-      <div className="table-filters">
-        <div className="filter-group">
-          <label htmlFor="status-filter">상태 필터:</label>
-          <select
-            id="status-filter"
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <label htmlFor="status-filter" className="text-sm font-medium text-gray-700">
+            상태 필터:
+          </label>
+          <Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="filter-select"
+            className="w-40"
           >
             <option value="">전체</option>
             <option value="PENDING">대기</option>
             <option value="IN_PROGRESS">진행 중</option>
             <option value="COMPLETED">완료</option>
             <option value="CANCELLED">취소</option>
-          </select>
+          </Select>
         </div>
-        <div className="table-info">
-          <span>총 {filteredWorkOrders.length}개</span>
+        <div className="text-sm text-gray-600">
+          총 {filteredWorkOrders.length}개
         </div>
       </div>
 
       {/* 테이블 */}
-      <div className="table-container">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>작업 번호</th>
-              <th>제품명</th>
-              <th>수량</th>
-              <th>상태</th>
-              <th>진행률</th>
-              <th>담당자</th>
-              <th>생성일</th>
-              <th>작업</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredWorkOrders.length > 0 ? (
-              filteredWorkOrders.map((workOrder: WorkOrder) => (
-                <tr key={workOrder.id} className="table-row">
-                  <td className="work-order-id">{workOrder.orderNumber}</td>
-                  <td className="product-name">{workOrder.productName}</td>
-                  <td className="quantity">
-                    {workOrder.quantity.toLocaleString()}개
-                  </td>
-                  <td className="status">
-                    <StatusBadge status={workOrder.status} />
-                  </td>
-                  <td className="progress">
-                    <ProgressBar progress={workOrder.progress || 0} />
-                  </td>
-                  <td className="assignedTo">{workOrder.assignedToName || "-"}</td>
-                  <td className="createdAt">
-                    {new Date(workOrder.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="actions">
-                    <div className="action-buttons">
-                      <button
-                        className="btn-action btn-view"
-                        onClick={() => onView(workOrder)}
-                        title="상세보기"
-                      >
-                        👁️
-                      </button>
-                      <button
-                        className="btn-action btn-edit"
-                        onClick={() => onEdit(workOrder)}
-                        title="수정"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        className="btn-action btn-delete"
-                        onClick={() => handleDelete(workOrder.id)}
-                        title="삭제"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={8} className="no-data">
-                  작업 지시서가 없습니다.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Card>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>작업 번호</TableHead>
+                <TableHead>제품명</TableHead>
+                <TableHead>수량</TableHead>
+                <TableHead>상태</TableHead>
+                <TableHead>진행률</TableHead>
+                <TableHead>담당자</TableHead>
+                <TableHead>생성일</TableHead>
+                <TableHead>작업</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredWorkOrders.length > 0 ? (
+                filteredWorkOrders.map((workOrder: WorkOrder) => (
+                  <TableRow key={workOrder.id}>
+                    <TableCell className="font-medium">{workOrder.orderNumber}</TableCell>
+                    <TableCell>{workOrder.productName}</TableCell>
+                    <TableCell>{workOrder.quantity.toLocaleString()}개</TableCell>
+                    <TableCell>
+                      <StatusBadge status={workOrder.status} />
+                    </TableCell>
+                    <TableCell className="w-40">
+                      <ProgressBar progress={workOrder.progress || 0} />
+                    </TableCell>
+                    <TableCell>{workOrder.assignedToName || "-"}</TableCell>
+                    <TableCell>
+                      {new Date(workOrder.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onView(workOrder)}
+                          title="상세보기"
+                        >
+                          👁️
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEdit(workOrder)}
+                          title="수정"
+                        >
+                          ✏️
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(workOrder.id)}
+                          title="삭제"
+                        >
+                          🗑️
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                    작업 지시서가 없습니다.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </Card>
     </div>
   );
 };

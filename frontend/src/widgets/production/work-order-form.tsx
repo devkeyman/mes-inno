@@ -4,6 +4,12 @@ import {
   CreateWorkOrderRequest,
   UpdateWorkOrderRequest,
 } from "@/entities/production";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
+import { Select } from "@/shared/components/ui/select";
+import { Textarea } from "@/shared/components/ui/textarea";
+import { Card } from "@/shared/components/ui/card";
 
 interface WorkOrderFormProps {
   workOrder?: WorkOrder;
@@ -72,74 +78,72 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
   const isFormValid = formData.productName.trim() && formData.quantity > 0;
 
   return (
-    <div className="work-order-form">
-      <div className="form-header">
-        <h2>{isEdit ? "작업 지시서 수정" : "새 작업 지시서 생성"}</h2>
+    <Card className="p-6">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">
+          {isEdit ? "작업 지시서 수정" : "새 작업 지시서 생성"}
+        </h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="form-content">
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="orderNumber" className="form-label">
-              주문번호 <span className="required">*</span>
-            </label>
-            <input
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="orderNumber">
+              주문번호 <span className="text-red-500">*</span>
+            </Label>
+            <Input
               type="text"
               id="orderNumber"
               name="orderNumber"
               value={formData.orderNumber}
               onChange={handleInputChange}
-              className="form-input"
               placeholder="주문번호를 입력하세요"
               required
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="productCode" className="form-label">
-              제품코드 <span className="required">*</span>
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="productCode">
+              제품코드 <span className="text-red-500">*</span>
+            </Label>
+            <Input
               type="text"
               id="productCode"
               name="productCode"
               value={formData.productCode}
               onChange={handleInputChange}
-              className="form-input"
               placeholder="제품코드를 입력하세요"
               required
             />
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="productName" className="form-label">
-              제품명 <span className="required">*</span>
-            </label>
-            <input
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="productName">
+              제품명 <span className="text-red-500">*</span>
+            </Label>
+            <Input
               type="text"
               id="productName"
               name="productName"
               value={formData.productName}
               onChange={handleInputChange}
-              className="form-input"
               placeholder="제품명을 입력하세요"
               required
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="quantity" className="form-label">
-              수량 <span className="required">*</span>
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="quantity">
+              수량 <span className="text-red-500">*</span>
+            </Label>
+            <Input
               type="number"
               id="quantity"
               name="quantity"
               value={formData.quantity}
               onChange={handleInputChange}
-              className="form-input"
               placeholder="0"
               min="1"
               required
@@ -147,120 +151,112 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="priority" className="form-label">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="priority">
               우선순위
-            </label>
-            <select
-              id="priority"
+            </Label>
+            <Select
               name="priority"
               value={formData.priority}
               onChange={handleInputChange}
-              className="form-select"
             >
               <option value="LOW">낮음</option>
               <option value="NORMAL">보통</option>
               <option value="HIGH">높음</option>
               <option value="URGENT">긴급</option>
-            </select>
+            </Select>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="dueDate" className="form-label">
+          <div className="space-y-2">
+            <Label htmlFor="dueDate">
               완료 예정일
-            </label>
-            <input
+            </Label>
+            <Input
               type="date"
               id="dueDate"
               name="dueDate"
               value={formData.dueDate}
               onChange={handleInputChange}
-              className="form-input"
             />
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="assignedToId" className="form-label">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="assignedToId">
               담당자 ID
-            </label>
-            <input
+            </Label>
+            <Input
               type="number"
               id="assignedToId"
               name="assignedToId"
               value={formData.assignedToId}
               onChange={handleInputChange}
-              className="form-input"
               placeholder="담당자 ID를 입력하세요"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="assignedTo" className="form-label">
+          <div className="space-y-2">
+            <Label htmlFor="assignedTo">
               담당자명
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               id="assignedTo"
               name="assignedTo"
               value={formData.assignedTo}
               onChange={handleInputChange}
-              className="form-input"
               placeholder="담당자명을 입력하세요"
             />
           </div>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="instructions" className="form-label">
+        <div className="space-y-2">
+          <Label htmlFor="instructions">
             작업 지시사항
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="instructions"
             name="instructions"
             value={formData.instructions}
             onChange={handleInputChange}
-            className="form-textarea"
             placeholder="작업 지시사항을 입력하세요"
             rows={3}
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="description" className="form-label">
+        <div className="space-y-2">
+          <Label htmlFor="description">
             설명
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="description"
             name="description"
             value={formData.description}
             onChange={handleInputChange}
-            className="form-textarea"
             placeholder="작업 지시서에 대한 상세 설명을 입력하세요"
             rows={4}
           />
         </div>
 
-        <div className="form-actions">
-          <button
+        <div className="flex justify-end gap-4 pt-6">
+          <Button
             type="button"
+            variant="outline"
             onClick={onCancel}
-            className="btn-secondary"
             disabled={isLoading}
           >
             취소
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            className="btn-primary"
             disabled={!isFormValid || isLoading}
           >
             {isLoading ? "처리 중..." : isEdit ? "수정" : "생성"}
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </Card>
   );
 };

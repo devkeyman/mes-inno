@@ -5,12 +5,14 @@ import { WorkOrderDetail } from "@/widgets/production/work-order-detail";
 import {
   useCreateWorkOrder,
   useUpdateWorkOrder,
+  useWorkOrders,
 } from "@/features/production/hooks/use-work-orders";
 import {
   WorkOrder,
   CreateWorkOrderRequest,
   UpdateWorkOrderRequest,
 } from "@/entities/production";
+import { Button } from "@/shared/components/ui/button";
 
 type ViewMode = "list" | "create" | "edit" | "detail";
 
@@ -22,6 +24,7 @@ const ProductionPage: React.FC = () => {
 
   const createWorkOrder = useCreateWorkOrder();
   const updateWorkOrder = useUpdateWorkOrder();
+  const { data: workOrders } = useWorkOrders();
 
   const handleCreate = () => {
     setSelectedWorkOrder(null);
@@ -68,19 +71,28 @@ const ProductionPage: React.FC = () => {
   const isLoading = createWorkOrder.isPending || updateWorkOrder.isPending;
 
   return (
-    <div className="production-page">
-      <header className="page-header">
-        <h1>생산 관리</h1>
-        <p>작업 지시서 관리 및 생산 현황</p>
+    <div className="space-y-8">
+      <header className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">생산 관리</h1>
+            <p className="mt-1 text-sm text-gray-500">작업 지시서를 관리하고 생산 현황을 모니터링합니다</p>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md font-medium">
+              작업 지시서 {workOrders?.length || 0}건
+            </span>
+          </div>
+        </div>
       </header>
 
-      <main className="page-content">
+      <main className="space-y-8">
         {viewMode === "list" && (
           <>
-            <div className="production-controls">
-              <button className="btn-primary" onClick={handleCreate}>
+            <div className="flex justify-end">
+              <Button onClick={handleCreate}>
                 새 작업 지시서
-              </button>
+              </Button>
             </div>
 
             <WorkOrdersTable onEdit={handleEdit} onView={handleView} />
