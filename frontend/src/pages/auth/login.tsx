@@ -73,7 +73,7 @@ export const LoginPage: React.FC = () => {
 
     try {
       await login.mutateAsync(formData);
-    } catch (error) {
+    } catch (error: any) {
       // 에러는 useLogin 훅에서 처리됨
       console.error("Login error:", error);
     }
@@ -130,7 +130,27 @@ export const LoginPage: React.FC = () => {
             {login.error && (
               <div className="bg-red-50 border border-red-200 rounded-md p-3">
                 <p className="text-sm text-red-600">
-                  로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.
+                  {(() => {
+                    const error = login.error as any;
+                    // 네트워크 에러 체크 (서버 연결 실패)
+                    if (error?.code === 'ERR_NETWORK' || error?.message?.includes('Network Error')) {
+                      return "서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.";
+                    }
+                    // 401, 403 등 인증 에러
+                    if (error?.response?.status === 401 || error?.response?.status === 403) {
+                      return "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.";
+                    }
+                    // 400 Bad Request
+                    if (error?.response?.status === 400) {
+                      return "잘못된 요청입니다. 입력 정보를 확인해주세요.";
+                    }
+                    // 500 서버 에러
+                    if (error?.response?.status >= 500) {
+                      return "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+                    }
+                    // 기본 메시지
+                    return "로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+                  })()}
                 </p>
               </div>
             )}

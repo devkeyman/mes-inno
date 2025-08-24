@@ -47,6 +47,12 @@ All imports use `@/` prefix for absolute paths:
 
 ## Key Technical Decisions
 
+### UI Framework
+- **Styling**: Tailwind CSS with custom theme configuration
+- **Components**: shadcn/ui components in `src/shared/components/ui/`
+- **Utilities**: `cn()` helper in `src/shared/lib/utils.ts` for className merging
+- **Theme**: CSS variables for colors, dark mode support via class
+
 ### State Management
 - **Server State**: TanStack React Query for API data caching and synchronization
 - **Client State**: Zustand for auth and local state management
